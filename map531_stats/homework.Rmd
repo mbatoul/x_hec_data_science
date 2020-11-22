@@ -1,0 +1,208 @@
+---
+title: 'MAP531: Homework'
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+You are asked to provided answers to all these exercises as both Rmd and pdf files. The two files should be uploaded on Moodle on the 11th of December (23h59 Paris time). 
+
+This homework should be done by groups of 2. Only one submission per group on moodle, with both names indicated in the file.
+
+This homework is composed of 2 independent problems.
+
+One question is a bit more technical: its is marked by a * and is optional.
+
+
+
+## Part 1: Estimating parameters of a Poisson distribution to model the number of goals scored in football 
+
+We recall that the Poisson distribution with parameter $\theta > 0$  has a pdf given by  $(p(\theta,k), k \in \mathbb N)$ w.r.t the counting measure on $\mathbb N$:
+	
+	
+$$
+	p(\theta,k)= \exp(-\theta) \frac{\theta^k}{k !}\,.
+$$
+
+
+
+### Question 1
+Is it a discrete or continuous distribution? Can you give 3 examples of phenomenons that could be modeled by such a distribution in statistics?
+
+### Question 2
+Compute the mean and the variance of this distribution as a function of  $\lambda$.
+	
+Remark: that if $X_1$ and $X_2$ are two independent random variables following a Poisson distribution with respective parameters  $\lambda_1 > 0$ and $\lambda_2 > 0$, then $X_1+ X_2$ has a Poisson distribution of parameter $\lambda_1+\lambda_2$. You do not need to prove this result.
+
+
+\vspace{1cm}
+We are provided with  $n$ independent observations of a  Poisson random variable of parameter	$\theta \in \Theta= \mathbb R_+^*$.
+
+### Question 3
+- What are our observations? What distribution do they follow?
+- Write the corresponding statistical model.
+- What parameter are we trying to estimate?
+
+### Question 4
+- What is the likelihood function? 
+- Compute the Maximum Likelihood Estimator $\hat \theta_{ML}$.
+	
+	
+### Question 5 
+Prove that $\sqrt n (\hat \theta_{ML} - \theta)$ converges in distribution as $n \to \infty$.
+
+### Question 6
+- Prove that $\sqrt n \frac{\hat \theta_{ML} - \theta}{\sqrt{\theta_{ML}}}$ converges in distribution as $n \to \infty$.
+- On R, verify that the distribution of the random variable $\sqrt n \frac{\hat \theta_{ML} - \theta}{\sqrt{\theta_{ML}}}$ is what you found theoretically, through a histogram and a QQ-plot (compute $Nattempts = 1000$ times the random variable $\sqrt n_{sample} \frac{\hat \theta_{ML} - \theta}{\sqrt{\theta_{ML}}}$ from a sample of size $n_{sample}$ of simulated Poisson data, with $\theta = 3$, like in PC2).
+
+
+### Question 7 
+For $\alpha \in (0,1)$, give an asymptotic confidence interval of level $\alpha$, that is an interval $[a_n(\alpha, (X_i)_{i \in \{1 \dots, n\}}); b_n(\alpha, (X_i)_{i \in \{1 \dots, n\}})]$, such that:
+$$\lim_{n \to +\infty} \mathbb P \bigg(\theta \in \Big[a_n\left(\alpha, (X_i)_{i \in \{1 \dots, n\}}\right); b_n\left(\alpha, (X_i)_{i \in \{1 \dots, n\}}\right)\Big] \bigg) \geq 1-\alpha .$$
+
+### Question 8
+- Propose two estimators $\hat \theta_1$ and $\hat \theta_2$ of $\theta$ based on the first and second moments of a Poisson distribution. 
+- What can you say about $\hat \theta_1$?
+
+### Question 9
+Compute the Bias, the Variance, and the quadratic risk of $\hat\theta_{ML}$. 
+
+### Question 10
+Let $\hat \theta_2 = \frac{1}{n}\sum_{i=1}^{n}(X_i-\bar X_n)^2$, with $\bar X_n= \frac{1}{n}\sum_{i=1}^{n}X_i$. Show that:
+
+$$\hat \theta_2 =  \frac{1}{n}\sum_{i=1}^{n}(X_i-\theta)^2 - (\theta-\bar X_n)^2.$$
+
+### Question 11
+- Compute $\mathbb E(\theta-\bar X_n)^2$.
+
+- Prove that $\hat \theta_2$ is an biased estimator of $\theta$ and give the bias. How can we get an unbiased estimator? 
+
+
+## Part 2: Application to Premier League scores.
+We want to model the number of goals during a soccer game by a Poisson distribution. We first model the number of goals of the local team and of the visiting team are independent Poisson, resp. with parameter $\lambda>0$ and	$\mu>0$.
+	
+
+### Question 1
+- Load the season-1718_csv file and describe what it contains.
+- What do  the variables FTHG, FTAG, FTR correspond to?
+
+```{r}
+df = read.csv('season-1718_csv.csv')
+head(df)
+```
+This CSV file contains football data for a whole season of Premier League. Each row is one game. 
+FTHG and HG = Full Time Home Team Goals.
+FTAG and AG = Full Time Away Team Goals.
+FTR and Res = Full Time Result (H=Home Win, D=Draw, A=Away Win)
+
+### Question 2
+
+*Exploring the dataset:*
+
+- Compute the number of points over the season of each team (victory = 3 points, draw=1 point), the number of points in "home" matches, the number of points in "away" matches. How many points did Arsenal score and what was its rank?
+- Compare the histogram of the total number of points at home and away.
+- Fit a density to those histograms.
+
+```{r}
+teams <- unique(df$HomeTeam)
+df2 <- data.frame(teams)
+df2['home_points'] <- NA
+df2['away_points'] <- NA
+df2['draw_points'] <- NA
+df2['total_points'] <- NA
+for (row in 1:nrow(df2)) {
+  team = df2[row, 'teams']
+  df2[row, 'home_points'] <- 3 * sum(df$HomeTeam == team & df$FTR == 'H')
+  df2[row, 'away_points'] <- 3 * sum(df$AwayTeam == team & df$FTR == 'A')
+  df2[row, 'draw_points'] <- sum((df$HomeTeam == team | df$AwayTeam == team) & df$FTR == 'D')
+  df2[row, 'total_points'] <- df2[row, 'home_points'] + df2[row, 'away_points'] + df2[row, 'draw_points']
+}
+df2 <- df2[order(-df2$total_points),]
+rownames(df2) <- NULL
+head(df2)
+```
+Arsenal scored 63 points in total: 45 home points, 12 away points and 6 draw points. Its rank was 6th.
+```{r}
+hist(
+  df2$home_points,
+  prob=TRUE,
+  main="Home points",
+  xlab="Number of points scored at home",
+  xlim=c(0, 50),
+  col="peachpuff",
+  border="black",
+)
+lines(density(df2$home_points), lwd=2, col='chocolate3')
+```
+```{r}
+hist(
+  df2$away_points,
+  prob=TRUE,
+  main="Away points",
+  xlab="Number of points scored away",
+  xlim=c(0, 50),
+  col="peachpuff",
+  border="black",
+)
+lines(density(df2$away_points), lwd=2, col='chocolate3')
+```
+
+
+### Question 3
+- Write the statistical model associated to the observation of $n$ match results. Do you think it is a realistic model?
+- Propose a method  to estimate  $\lambda$ and $\mu$.
+
+
+### Question 4
+- Compute the empirical mean and variance of the number of goals of 1)the visiting team 2) the home team.
+- Compute the MLE estimators (of $\lambda,\mu$) for the Poisson model.
+- Does the Poisson assumption look correct?
+	
+### Question 5
+- Compute the  confidence intervals for $\lambda$ derived at question 7, and a similar confidence interval for $\mu$.
+- Do you think the distribution of the number of goals scored by the home team and the visiting team is the same?
+
+
+
+
+
+```{r}
+
+```
+
+### Question 6
+- What would be the best approach to answer the previous question? Formalize the problem as a testing problem.
+
+
+- Use a t.test to give a more precise answer.
+- Comment on the assumptions of such a test. Are they valid, "nearly valid", or problematic?
+- What is the p-value of the test? What does that mean?
+- If you want a test of level $\alpha=0.05$, do you accept or reject the null hypothesis?
+
+*We now only focus on the number of goals scored by the home team*.
+
+```{r}
+
+```
+
+### Question 7
+- Compute the 2 confidence intervals for $\lambda$ derived at question 7, 9. Which one would you rather use? 
+
+
+### Question 8*
+
+The two favourite for the title of champion of Premier League this year are Liverpool and Manchester City. Which one was the best in 2017/2018? 
+To answer that question, we will compare the offence of both teams.
+
+- Create two vectors ManCity and Liverpool containing the goals scored during the season, both away and home.
+- Formalise the previous question as a testing problem and use a t.test to answer it.
+- If you want a test of level $\alpha=0.05$, do you accept or reject the null hypothesis? How would you conlude on which team has the best offence for the season 2017/2018?
+
+

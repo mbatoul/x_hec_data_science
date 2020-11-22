@@ -1,0 +1,12 @@
+__pycache__
+.ipynb_checkpoints
+*.lyx*
+*.html
+*.csv
+*.txt
+.DS_store
+*.zip
+*.png
+*.jpg
+*.RData
+*.names
