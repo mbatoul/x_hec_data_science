@@ -124,8 +124,10 @@ def plot(results):
 
 	abs_sq_norm_resid = np.flip(np.argsort(model_norm_residuals_abs_sqrt), 0)
 	abs_sq_norm_resid_top_3 = abs_sq_norm_resid[:3]
-	for r, i in enumerate(abs_sq_norm_resid_top_3):
-		plot_lm_3.annotate(indexes[i],xy=(model_fitted_y.iloc[i],model_norm_residuals_abs_sqrt[i]))
+
+	for i in abs_sq_norm_resid_top_3:
+	    plot_lm_3.annotate(indexes[i],xy=(model_fitted_y[i],
+	                                   model_norm_residuals_abs_sqrt[i]))
 
 
 
@@ -177,8 +179,8 @@ def plot(results):
 
 
 	plot_lm_4.legend(loc='upper right')
-	plot_lm_4.set_xlim(np.min(model_leverage)-0.0001, np.max(model_leverage)+0.0001)
-	plot_lm_4.set_ylim(np.nanmin(model_norm_residuals)-0.005, np.nanmax(model_norm_residuals)+0.005)
+	plot_lm_4.set_xlim(0, np.max(model_leverage)+0.05)
+	plot_lm_4.set_ylim(np.nanmin(model_norm_residuals)-0.5, np.nanmax(model_norm_residuals)+0.2)
 	plot_lm_4.set_title('Residuals vs Leverage')
 	plot_lm_4.set_xlabel('Leverage')
 	plot_lm_4.set_ylabel('Standardized Residuals')
